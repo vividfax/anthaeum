@@ -20,6 +20,8 @@ const Twit = require('twit');
 const config = require('./config');
 const guideWords = require('./guide-words');
 
+let gif;
+
 function main() {
 
     let content = {
@@ -31,7 +33,7 @@ function main() {
         sendToot(content);
         sendTweet(content);
 
-    }, 1000 * 3);
+    }, 1000 * 10);
 
     console.log(content);
 }
@@ -50,18 +52,25 @@ function getText() {
 
 function makeGif() {
 
+    // let gifLength = 1;
     let colors = getColors();
-    // let gifLength;
     // let grid = makeGrid();
     // let noise = getNoise();
     // let velocity;
 
+    let filename = '/anth.gif';
+    gif = new Gif(filename);
+    gif.start();
+
     draw(colors);
 
-    let filename = '/image.png';
-    savePng(filename);
+    gif.end();
 
-    // optimiseGif();
+    setTimeout(function () {
+
+        // gif.optimise();
+
+    }, 1000 * 3);
 
     return filename;
 }
@@ -118,12 +127,54 @@ function hslToHex(h, s, l) {
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
+class Gif {
+
+    constructor(filename) {
+
+        this.filename = filename;
+    }
+
+    start() {
+
+        encoder.createReadStream().pipe(fs.createWriteStream(__dirname + this.filename));
+        encoder.start();
+        encoder.setRepeat(0); // 0 for repeat, -1 for no-repeat
+        encoder.setDelay(1000 / 30); // frame delay in ms
+        encoder.setQuality(20); // image quality. 10 is default.
+
+        console.log('Making gif...');
+    }
+
+    saveFrame() {
+
+        encoder.addFrame(ctx);
+        console.log('+');
+    }
+
+    end() {
+
+        encoder.finish();
+        console.log('Saved gif');
+    }
+
+    optimise() {
+
+        imagemin([__dirname + this.filename], '.', {
+            use: [imageminGifsicle({
+                optimizationLevel: 3
+            })]
+        }).then(() => {
+            console.log('Optimized gif');
+        });
+    }
+}
+
 function draw(colors) {
 
     for (let i = 0; i < HEIGHT; i++) {
 
         ctx.fillStyle = lerpColor(colors.light, colors.dark, i / HEIGHT);
-        ctx.fillRect(0, i, WIDTH, i);
+        ctx.fillRect(0, i, WIDTH, i + 1);
     }
 
     ctx.strokeStyle = colors.mid;
@@ -132,6 +183,9 @@ function draw(colors) {
     ctx.moveTo(WIDTH / 2, 0);
     ctx.lineTo(WIDTH / 2, HEIGHT);
     ctx.stroke();
+
+    gif.saveFrame();
+    gif.saveFrame();
 }
 
 function lerpColor(a, b, ratio) {
