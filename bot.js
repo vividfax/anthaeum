@@ -26,8 +26,12 @@ function main() {
         'text': getText(),
         'media': makeGif()
     }
-    sendToot(content);
-    sendTweet(content);
+    setTimeout(function () {
+
+        sendToot(content);
+        sendTweet(content);
+
+    }, 1000 * 3);
 
     console.log(content);
 }
@@ -165,7 +169,7 @@ function sendToot(content) {
     const M = new Mastodon(config.mastodon);
 
     M.post('media', {
-        file: fs.createReadStream(content.media)
+        file: fs.createReadStream(__dirname + content.media)
     }).then(resp => {
         const id = resp.data.id;
         M.post('statuses', {
@@ -179,7 +183,7 @@ function sendTweet(content) {
 
     const T = new Twit(config.twitter);
 
-    const b64content = fs.readFileSync(content.media, {
+    const b64content = fs.readFileSync(__dirname + content.media, {
         encoding: 'base64'
     });
     T.post('media/upload', {
