@@ -1,15 +1,15 @@
-const WIDTH = 1280;
+const WIDTH = 1080;
 const HEIGHT = WIDTH;
-
-const GIFEncoder = require('gifencoder');
-const encoder = new GIFEncoder(WIDTH, HEIGHT);
 
 const {
     createCanvas
 } = require('canvas');
 const canvas = createCanvas(WIDTH, HEIGHT);
 const ctx = canvas.getContext('2d');
+const SimplexNoise = require('simplex-noise');
 
+const GIFEncoder = require('gifencoder');
+const encoder = new GIFEncoder(WIDTH, HEIGHT);
 const fs = require('fs');
 const imagemin = require('imagemin');
 const imageminGifsicle = require('imagemin-gifsicle');
@@ -21,6 +21,7 @@ const config = require('./config');
 const guideWords = require('./guide-words');
 
 let gif;
+let simplex;
 
 function main() {
 
@@ -30,10 +31,12 @@ function main() {
     }
     setTimeout(function () {
 
-        sendToot(content);
         sendTweet(content);
+        sendToot(content);
 
-    }, 1000 * 10);
+        console.log('Posted');
+
+    }, 1000 * 8);
 
     console.log(content);
 }
@@ -52,23 +55,22 @@ function getText() {
 
 function makeGif() {
 
-    // let gifLength = 1;
+    let gifLength = 11;
+
     let colors = getColors();
-    // let grid = makeGrid();
-    // let noise = getNoise();
-    // let velocity;
+    simplex = new SimplexNoise();
 
     let filename = '/anth.gif';
     gif = new Gif(filename);
     gif.start();
 
-    draw(colors);
+    draw(colors, simplex, gifLength);
 
     gif.end();
 
     setTimeout(function () {
 
-        // gif.optimise();
+        gif.optimise();
 
     }, 1000 * 3);
 
@@ -139,7 +141,7 @@ class Gif {
         encoder.createReadStream().pipe(fs.createWriteStream(__dirname + this.filename));
         encoder.start();
         encoder.setRepeat(0); // 0 for repeat, -1 for no-repeat
-        encoder.setDelay(1000 / 30); // frame delay in ms
+        encoder.setDelay(1000 / 5); // frame delay in ms
         encoder.setQuality(20); // image quality. 10 is default.
 
         console.log('Making gif...');
@@ -161,6 +163,7 @@ class Gif {
 
         imagemin([__dirname + this.filename], '.', {
             use: [imageminGifsicle({
+                colors: 255,
                 optimizationLevel: 3
             })]
         }).then(() => {
@@ -169,13 +172,39 @@ class Gif {
     }
 }
 
-function draw(colors) {
+function draw(colors, simplex, frames) {
 
-    for (let i = 0; i < HEIGHT; i++) {
+    for (let i = 0; i < frames; i++) {
 
-        ctx.fillStyle = lerpColor(colors.light, colors.dark, i / HEIGHT);
-        ctx.fillRect(0, i, WIDTH, i + 1);
+        drawClouds(colors, simplex, i, frames);
+        drawWindows(colors);
+
+        gif.saveFrame();
     }
+}
+
+function drawClouds(colors, simplex, position, totalFrames) {
+
+    let speed = 8;
+
+    let angle = Math.PI * 2 / totalFrames * position;
+    let radius = totalFrames / Math.PI * 2 * speed;
+    let z = radius * Math.cos(angle);
+    let t = radius * Math.sin(angle);
+
+    for (let i = 0; i < WIDTH; i++) {
+        for (let j = 0; j < HEIGHT; j++) {
+
+            let noise = getSimplex(simplex, i, j, z, t);
+            let color = lerpColor(colors.light, colors.dark, noise);
+
+            ctx.fillStyle = color;
+            ctx.fillRect(i, j, 1, 1);
+        }
+    }
+}
+
+function drawWindows(colors) {
 
     ctx.strokeStyle = colors.mid;
     ctx.lineWidth = WIDTH * .1;
@@ -183,9 +212,35 @@ function draw(colors) {
     ctx.moveTo(WIDTH / 2, 0);
     ctx.lineTo(WIDTH / 2, HEIGHT);
     ctx.stroke();
+}
 
-    gif.saveFrame();
-    gif.saveFrame();
+function map(value, low1, high1, low2, high2) {
+
+    return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
+}
+
+function getSimplex(simplex, x, y, z, t) {
+
+    let scale = 0.002;
+    let texture = 0.5;
+    const octaves = 16;
+
+    let noise = 0;
+    let power = 0;
+    let fraction = 1;
+
+    for (let i = 0; i < octaves; i++) {
+
+        noise += simplex.noise4D(x * scale, y * scale, z * scale, t * scale) * fraction;
+        power += fraction;
+        fraction *= texture;
+        scale *= 2;
+    }
+    noise /= power;
+
+    noise = map(noise, -1, 1, 0, 1);
+
+    return noise;
 }
 
 function lerpColor(a, b, ratio) {
