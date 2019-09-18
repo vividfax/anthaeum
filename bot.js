@@ -8,14 +8,12 @@ const canvas = createCanvas(WIDTH, HEIGHT);
 const ctx = canvas.getContext('2d');
 const SimplexNoise = require('simplex-noise');
 
-const fs = require('fs');
-const Mastodon = require('mastodon-api');
-const Twit = require('twit');
-
-const config = require('./config');
 const guideWords = require('./guide-words');
 
 const Gif = require('./js/Gif');
+const Post = require('./js/Post');
+// Colors
+// Simplex
 
 let gif;
 let simplex;
@@ -23,22 +21,21 @@ let simplex;
 function main() {
 
     let content = {
-        'text': getText(),
+        'text': makeText(),
         'media': makeGif()
-    }
+    };
+
     setTimeout(function () {
 
-        sendTweet(content);
-        sendToot(content);
-
-        console.log('Posted');
+        let post = new Post();
+        post.send(content);
 
     }, 1000 * 8);
 
     console.log(content);
 }
 
-function getText() {
+function makeText() {
 
     const distance = Math.floor(Math.random() * 23) + 8;
     const length = guideWords.words.length - distance - 1;
@@ -57,8 +54,8 @@ function makeGif() {
     let colors = getColors();
     simplex = new SimplexNoise();
 
-    let filename = '/anth.gif'
-    gif = new Gif(__dirname + filename, ctx);
+    let path = __dirname + '/anth.gif';
+    gif = new Gif(path, ctx);
     gif.start();
 
     draw(colors, simplex, gifLength);
@@ -71,7 +68,7 @@ function makeGif() {
 
     }, 1000 * 3);
 
-    return filename;
+    return path;
 }
 
 function getColors() {
@@ -216,7 +213,7 @@ function lerpColor(a, b, ratio) {
 
 function savePng(filename) {
 
-    let out = fs.createWriteStream(__dirname + filename);
+    let out = fs.createWriteStream(filename);
     let stream = canvas.pngStream();
 
     stream.on('data', function (chunk) {
@@ -224,49 +221,6 @@ function savePng(filename) {
     });
     stream.on('end', function () {
         console.log('Saved png');
-    });
-}
-
-function sendToot(content) {
-
-    const M = new Mastodon(config.mastodon);
-
-    M.post('media', {
-        file: fs.createReadStream(__dirname + content.media)
-    }).then(resp => {
-        const id = resp.data.id;
-        M.post('statuses', {
-            status: content.text,
-            media_ids: [id]
-        })
-    });
-}
-
-function sendTweet(content) {
-
-    const T = new Twit(config.twitter);
-
-    const b64content = fs.readFileSync(__dirname + content.media, {
-        encoding: 'base64'
-    });
-    T.post('media/upload', {
-        media_data: b64content
-    }, function (err, data, response) {
-        let mediaIdStr = data.media_id_string
-        let meta_params = {
-            media_id: mediaIdStr
-        }
-        T.post('media/metadata/create', meta_params, function (err, data, response) {
-            if (!err) {
-                let params = {
-                    status: content.text,
-                    media_ids: [mediaIdStr]
-                }
-                T.post('statuses/update', params, function (err, data, response) {
-                    console.log(data)
-                })
-            }
-        })
     });
 }
 
