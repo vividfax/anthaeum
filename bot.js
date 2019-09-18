@@ -8,17 +8,14 @@ const canvas = createCanvas(WIDTH, HEIGHT);
 const ctx = canvas.getContext('2d');
 const SimplexNoise = require('simplex-noise');
 
-const GIFEncoder = require('gifencoder');
-const encoder = new GIFEncoder(WIDTH, HEIGHT);
 const fs = require('fs');
-const imagemin = require('imagemin');
-const imageminGifsicle = require('imagemin-gifsicle');
-
 const Mastodon = require('mastodon-api');
 const Twit = require('twit');
 
 const config = require('./config');
 const guideWords = require('./guide-words');
+
+const Gif = require('./js/Gif');
 
 let gif;
 let simplex;
@@ -60,8 +57,8 @@ function makeGif() {
     let colors = getColors();
     simplex = new SimplexNoise();
 
-    let filename = '/anth.gif';
-    gif = new Gif(filename);
+    let filename = '/anth.gif'
+    gif = new Gif(__dirname + filename, ctx);
     gif.start();
 
     draw(colors, simplex, gifLength);
@@ -127,49 +124,6 @@ function hslToHex(h, s, l) {
         return hex.length === 1 ? '0' + hex : hex;
     };
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-}
-
-class Gif {
-
-    constructor(filename) {
-
-        this.filename = filename;
-    }
-
-    start() {
-
-        encoder.createReadStream().pipe(fs.createWriteStream(__dirname + this.filename));
-        encoder.start();
-        encoder.setRepeat(0); // 0 for repeat, -1 for no-repeat
-        encoder.setDelay(1000 / 5); // frame delay in ms
-        encoder.setQuality(20); // image quality. 10 is default.
-
-        console.log('Making gif...');
-    }
-
-    saveFrame() {
-
-        encoder.addFrame(ctx);
-        console.log('+');
-    }
-
-    end() {
-
-        encoder.finish();
-        console.log('Saved gif');
-    }
-
-    optimise() {
-
-        imagemin([__dirname + this.filename], '.', {
-            use: [imageminGifsicle({
-                colors: 255,
-                optimizationLevel: 3
-            })]
-        }).then(() => {
-            console.log('Optimized gif');
-        });
-    }
 }
 
 function draw(colors, simplex, frames) {
