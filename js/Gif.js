@@ -44,7 +44,7 @@ module.exports = class Gif {
         imagemin([this.path], '.', {
             use: [imageminGifsicle({
 
-                colors: 256, // 2 to 256. fewer colors for smaller file
+                colors: 100, // 2 to 256. fewer colors for smaller file
                 optimizationLevel: 3 // 1 to 3. high is good but slow
             })]
         }).then(() => {

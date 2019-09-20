@@ -86,10 +86,10 @@ function draw(colors, simplex, frames) {
 
 function drawClouds(colors, simplex, position, totalFrames) {
 
-    let speed = 8;
+    let velocity = 1.5;
 
     let angle = Math.PI * 2 / totalFrames * position;
-    let radius = totalFrames / Math.PI * 2 * speed;
+    let radius = totalFrames / Math.PI * 2 * velocity;
     let z = radius * Math.cos(angle);
     let t = radius * Math.sin(angle);
 
@@ -122,11 +122,6 @@ function drawWindows(colors) {
     ctx.stroke();
 }
 
-function map(value, low1, high1, low2, high2) {
-
-    return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
-}
-
 function getSimplex(simplex, x, y, z, t) {
 
     let scale = 0.002;
@@ -146,9 +141,22 @@ function getSimplex(simplex, x, y, z, t) {
     }
     noise /= power;
 
-    noise = map(noise, -1, 1, 0, 1);
+    noise = sineMap(noise);
+    noise = sineMap(noise);
+    noise = sineMap(noise);
+    noise = map(noise, -1, 1, -.2, 1);
 
     return noise;
+}
+
+function sineMap(noise) {
+
+    return Math.sin(noise * Math.PI / 2);
+}
+
+function map(value, low1, high1, low2, high2) {
+
+    return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
 }
 
 main();

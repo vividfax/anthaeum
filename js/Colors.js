@@ -11,6 +11,9 @@ module.exports = class Colors {
 
     lerp(a, b, ratio) {
 
+        if (ratio > 1) {
+            ratio = 1;
+        }
         return {
             r: Math.round((b.r - a.r) * ratio + a.r),
             g: Math.round((b.g - a.g) * ratio + a.g),
@@ -38,9 +41,9 @@ function generateColors() {
     midHue = (midHue / 2) % 360;
 
     return {
-        'light': hslToRgb(lightHue, 95, 88),
-        'mid': hslToRgb(midHue, 30, 60),
-        'dark': hslToRgb(darkHue, 80, 25)
+        'light': hslToRgb(lightHue, 100, 95),
+        'mid': hslToRgb(midHue, 45, 80),
+        'dark': hslToRgb(darkHue, 30, 60)
     }
 }
 
