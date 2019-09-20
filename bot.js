@@ -10,9 +10,9 @@ const SimplexNoise = require('simplex-noise');
 
 const guideWords = require('./guide-words');
 
+const Colors = require('./js/Colors');
 const Gif = require('./js/Gif');
 const Post = require('./js/Post');
-// Colors
 // Simplex
 
 let gif;
@@ -51,7 +51,9 @@ function makeGif() {
 
     let gifLength = 11;
 
-    let colors = getColors();
+    let colors = new Colors();
+    colors.mid = colors.str(colors.mid);
+
     simplex = new SimplexNoise();
 
     let path = __dirname + '/anth.gif';
@@ -69,58 +71,6 @@ function makeGif() {
     }, 1000 * 3);
 
     return path;
-}
-
-function getColors() {
-
-    let hues = [randomHue(), randomHue()];
-    let distance = hues[0] - hues[1];
-    let midHue = hues[0] + hues[1];
-
-    if (distance > 180 || distance < -180) {
-        midHue += 360;
-    }
-    midHue = (midHue / 2) % 360;
-
-    let colors = {
-        'light': hslToHex(hues[0], 95, 88),
-        'mid': hslToHex(midHue, 30, 60),
-        'dark': hslToHex(hues[1], 80, 25)
-    }
-    return colors;
-}
-
-function randomHue() {
-    return Math.floor(Math.random() * 360);
-}
-
-function hslToHex(h, s, l) {
-    h /= 360;
-    s /= 100;
-    l /= 100;
-    let r, g, b;
-    if (s === 0) {
-        r = g = b = l; // achromatic
-    } else {
-        const hue2rgb = (p, q, t) => {
-            if (t < 0) t += 1;
-            if (t > 1) t -= 1;
-            if (t < 1 / 6) return p + (q - p) * 6 * t;
-            if (t < 1 / 2) return q;
-            if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-            return p;
-        };
-        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-        const p = 2 * l - q;
-        r = hue2rgb(p, q, h + 1 / 3);
-        g = hue2rgb(p, q, h);
-        b = hue2rgb(p, q, h - 1 / 3);
-    }
-    const toHex = x => {
-        const hex = Math.round(x * 255).toString(16);
-        return hex.length === 1 ? '0' + hex : hex;
-    };
-    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
 function draw(colors, simplex, frames) {
@@ -143,16 +93,23 @@ function drawClouds(colors, simplex, position, totalFrames) {
     let z = radius * Math.cos(angle);
     let t = radius * Math.sin(angle);
 
+    const imgData = ctx.createImageData(WIDTH, HEIGHT);
+
     for (let i = 0; i < WIDTH; i++) {
         for (let j = 0; j < HEIGHT; j++) {
 
             let noise = getSimplex(simplex, i, j, z, t);
-            let color = lerpColor(colors.light, colors.dark, noise);
+            let color = colors.lerp(colors.light, colors.dark, noise);
 
-            ctx.fillStyle = color;
-            ctx.fillRect(i, j, 1, 1);
+            const place = (j * HEIGHT + i) * 4;
+
+            imgData.data[place] = color.r;
+            imgData.data[place + 1] = color.g;
+            imgData.data[place + 2] = color.b;
+            imgData.data[place + 3] = 255;
         }
     }
+    ctx.putImageData(imgData, 0, 0);
 }
 
 function drawWindows(colors) {
@@ -192,36 +149,6 @@ function getSimplex(simplex, x, y, z, t) {
     noise = map(noise, -1, 1, 0, 1);
 
     return noise;
-}
-
-function lerpColor(a, b, ratio) {
-
-    let ah = parseInt(a.replace(/#/g, ""), 16),
-        ar = ah >> 16,
-        ag = ah >> 8 & 0xff,
-        ab = ah & 0xff,
-        bh = parseInt(b.replace(/#/g, ""), 16),
-        br = bh >> 16,
-        bg = bh >> 8 & 0xff,
-        bb = bh & 0xff,
-        rr = ar + ratio * (br - ar),
-        rg = ag + ratio * (bg - ag),
-        rb = ab + ratio * (bb - ab);
-
-    return "#" + ((1 << 24) + (rr << 16) + (rg << 8) + rb | 0).toString(16).slice(1);
-}
-
-function savePng(filename) {
-
-    let out = fs.createWriteStream(filename);
-    let stream = canvas.pngStream();
-
-    stream.on('data', function (chunk) {
-        out.write(chunk);
-    });
-    stream.on('end', function () {
-        console.log('Saved png');
-    });
 }
 
 main();
