@@ -41,9 +41,9 @@ function generateColors() {
     midHue = (midHue / 2) % 360;
 
     return {
-        'light': hslToRgb(lightHue, 100, 95),
-        'mid': hslToRgb(midHue, 45, 80),
-        'dark': hslToRgb(darkHue, 30, 60)
+        light: hslToRgb(lightHue, 100, 95),
+        mid: hslToRgb(midHue, 45, 80),
+        dark: hslToRgb(darkHue, 30, 60)
     }
 }
 

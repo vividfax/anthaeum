@@ -6,10 +6,11 @@ const fs = require('fs');
 
 module.exports = class Gif {
 
-    constructor(path, ctx) {
+    constructor(path, ctx, length) {
 
         this.path = path;
         this.ctx = ctx;
+        this.len = length;
 
         this.encoder = new gifEncoder(ctx.canvas.width, ctx.canvas.height);
     }
