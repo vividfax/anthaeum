@@ -18,7 +18,7 @@ module.exports = class Windows {
             y: -border.top
         };
         this.frames = {
-            weight: 22,
+            weight: 18,
             columns: randInt(3, 5),
             rows: randInt(2, 3)
         }

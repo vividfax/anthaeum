@@ -40,11 +40,30 @@ function generateColors() {
     }
     midHue = (midHue / 2) % 360;
 
+    const darkSaturation = adjustHsl(darkHue, 30, 90); // make red less brown
+    const darkLightness = adjustHsl(darkHue, 60, 80);
+
     return {
         light: hslToRgb(lightHue, 100, 95),
         mid: hslToRgb(midHue, 45, 80),
-        dark: hslToRgb(darkHue, 30, 60)
+        dark: hslToRgb(darkHue, darkSaturation, darkLightness)
     }
+}
+
+function adjustHsl(hue, min, max) {
+
+    hue = 1 - (hue - 180) / 180;
+    hue = sineMap(hue);
+    hue = sineMap(hue);
+    hue = sineMap(hue);
+    hue = 1 - Math.abs(hue);
+
+    return (max - min) * hue + min;
+}
+
+function sineMap(num) {
+
+    return Math.sin(num * Math.PI / 2);
 }
 
 function hslToRgb(h, s, l) {
