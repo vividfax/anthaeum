@@ -6,14 +6,15 @@ const Colors = require('./js/Colors');
 const Clouds = require('./js/Clouds');
 const Gif = require('./js/Gif');
 const Post = require('./js/Post');
+const Windows = require('./js/Windows');
 
 const guideWords = require('./guide-words');
 
 function main() {
 
     let content = {
-        'text': makeText(),
-        'media': makeGif()
+        text: makeText(),
+        media: makeGif()
     };
     setTimeout(function () {
 
@@ -64,30 +65,18 @@ function drawGif(ctx, gif) {
     const colors = new Colors();
     colors.mid = colors.str(colors.mid);
     const clouds = new Clouds(ctx, colors, gif.len);
+    const windows = new Windows(ctx, colors);
 
     gif.start();
 
     for (let i = 0; i < gif.len; i++) {
 
         clouds.draw(i);
-        drawWindows(ctx, colors);
+        windows.draw();
 
         gif.saveFrame();
     }
     gif.end();
-}
-
-function drawWindows(ctx, colors) {
-
-    const width = ctx.canvas.width;
-    const height = ctx.canvas.height;
-
-    ctx.strokeStyle = colors.mid;
-    ctx.lineWidth = width * .1;
-
-    ctx.moveTo(width / 2, 0);
-    ctx.lineTo(width / 2, height);
-    ctx.stroke();
 }
 
 main();
