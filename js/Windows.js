@@ -6,9 +6,9 @@ module.exports = class Windows {
         this.color = colors.mid;
 
         const border = {
-            side: ctx.canvas.width * .03,
-            top: ctx.canvas.height / random(7, 20),
-            bottom: ctx.canvas.height / random(7, 20)
+            side: ctx.canvas.width * .04,
+            top: ctx.canvas.height / random(5, 15),
+            bottom: ctx.canvas.height / random(5, 15)
         };
         this.width = ctx.canvas.width + border.side * 2;
         this.height = ctx.canvas.height + border.top + border.bottom;
@@ -18,12 +18,12 @@ module.exports = class Windows {
             y: -border.top
         };
         this.frames = {
-            weight: 18,
-            columns: randInt(3, 5),
+            weight: 16,
+            columns: randInt(3, 6),
             rows: randInt(2, 3)
         }
         this.panes = {
-            weight: this.frames.weight / 5,
+            weight: this.frames.weight / 4,
             columns: randInt(2, 3),
             rows: randInt(1, 4)
         }

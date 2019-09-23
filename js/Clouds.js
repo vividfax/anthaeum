@@ -65,7 +65,7 @@ function getSimplex(simplex, x, y, z, t) {
     noise = sineMap(noise);
     noise = sineMap(noise);
     noise = sineMap(noise);
-    noise = remap(noise, -1, 1, -.2, 1);
+    noise = remap(noise, -1, 1, -.2, 1.15);
 
     return noise;
 }

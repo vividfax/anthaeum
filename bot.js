@@ -74,6 +74,8 @@ function drawGif(ctx, gif) {
         clouds.draw(i);
         windows.draw();
 
+        // colors.test(ctx);
+
         gif.saveFrame();
     }
     gif.end();

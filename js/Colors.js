@@ -25,12 +25,27 @@ module.exports = class Colors {
 
         return 'rgb(' + color.r + ',' + color.g + ',' + color.b + ')';
     }
+
+    test(ctx) {
+
+        for (let i = 0; i < 360; i++) {
+
+            const saturation = adjustHsl(i, 25, 95);
+            const lightness = adjustHsl(i, 72, 88);
+
+            ctx.fillStyle = this.str(hslToRgb(i, saturation, lightness));
+
+            const place = (i + 270) % 360;
+
+            ctx.fillRect(ctx.canvas.width / 300 * place, 0, ctx.canvas.width / 300, ctx.canvas.height);
+        }
+    }
 }
 
 function generateColors() {
 
     const lightHue = Math.floor(Math.random() * 360);
-    const darkHue = Math.floor(Math.random() * 360);
+    const darkHue = (Math.floor(Math.random() * 300) + 90) % 360;
 
     const distance = lightHue - darkHue;
     let midHue = lightHue + darkHue;
@@ -40,30 +55,54 @@ function generateColors() {
     }
     midHue = (midHue / 2) % 360;
 
-    const darkSaturation = adjustHsl(darkHue, 30, 90); // make red less brown
-    const darkLightness = adjustHsl(darkHue, 60, 80);
+    const darkSaturation = adjustHsl(darkHue, 28, 98);
+    const darkLightness = adjustHsl(darkHue, 72, 88);
 
     return {
         light: hslToRgb(lightHue, 100, 95),
-        mid: hslToRgb(midHue, 45, 80),
+        mid: hslToRgb(midHue, 60, 90),
         dark: hslToRgb(darkHue, darkSaturation, darkLightness)
     }
 }
 
 function adjustHsl(hue, min, max) {
 
-    hue = 1 - (hue - 180) / 180;
-    hue = sineMap(hue);
-    hue = sineMap(hue);
-    hue = sineMap(hue);
+    switch (true) {
+
+        case (hue >= 0 && hue < 30): // red to orange
+
+            hue = 1 - (hue - 180) / 180;
+            hue -= 2;
+            break;
+
+        case (hue >= 90 && hue < 180): // lime to cyan
+
+            hue = 1 - (hue - 120) / 180;
+            hue = sineMap(hue);
+            hue = sineMap(hue);
+            break;
+
+        case (hue >= 180 && hue < 240): // cyan to blue
+
+            hue = 1 - (hue - 60) / 60;
+            hue += 2;
+            break;
+
+        case (hue >= 240 && hue < 300): // blue to magenta
+
+            hue = 1 - (hue - 60) / 180;
+            hue = sineMap(hue);
+            break;
+
+        case (hue >= 300 && hue < 360): // magenta to red
+
+            hue = 1 - (hue - 180) / 180;
+            hue = sineMap(hue);
+            break;
+    }
     hue = 1 - Math.abs(hue);
 
     return (max - min) * hue + min;
-}
-
-function sineMap(num) {
-
-    return Math.sin(num * Math.PI / 2);
 }
 
 function hslToRgb(h, s, l) {
@@ -96,4 +135,9 @@ function hslToRgb(h, s, l) {
         g: Math.round(g * 255),
         b: Math.round(b * 255)
     };
+}
+
+function sineMap(num) {
+
+    return Math.sin(num * Math.PI / 2);
 }
