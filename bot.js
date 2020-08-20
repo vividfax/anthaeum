@@ -2,8 +2,8 @@ const {
     createCanvas
 } = require('canvas');
 
-const Colors = require('./js/Colors');
 const Clouds = require('./js/Clouds');
+const Colors = require('./js/Colors');
 const Gif = require('./js/Gif');
 const Post = require('./js/Post');
 const Windows = require('./js/Windows');
@@ -12,13 +12,13 @@ const guideWords = require('./guide-words');
 
 function main() {
 
-    let content = {
+    const content = {
         text: makeText(),
         media: makeGif()
     };
     setTimeout(function () {
 
-        let post = new Post();
+        const post = new Post();
         post.send(content);
 
     }, 1000 * 8);

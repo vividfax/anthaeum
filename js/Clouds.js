@@ -13,7 +13,7 @@ module.exports = class Clouds {
 
     draw(position) {
 
-        const velocity = 1.5;
+        const velocity = 3;
 
         const angle = Math.PI * 2 / this.gifLength * position;
         const radius = this.gifLength / Math.PI * 2 * velocity;
